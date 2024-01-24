@@ -1,0 +1,30 @@
+name: Add Issue to Project
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  add-to-project:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Add to Project
+      uses: actions/github-script@0.10.0
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const { data: projects } = await github.projects.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+          });
+
+          const project = projects.find(proj => proj.name === 'Your Project Name');
+
+          if (project) {
+            await github.projects.createCard({
+              column_id: project.columns.find(col => col.name === 'To Do').id,
+              content_id: context.issue.id,
+              content_type: 'Issue',
+            });
+          }
